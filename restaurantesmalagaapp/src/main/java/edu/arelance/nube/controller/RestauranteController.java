@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -48,6 +49,9 @@ public class RestauranteController {
 	@Autowired // inyeccion de dependencias
 	RestauranteService restauranteService;
 	
+	@Autowired
+	Environment environment; //Bean de spring que me da informacion del contexto
+	
 	//log
 	Logger logger= LoggerFactory.getLogger(RestauranteController.class);
 
@@ -72,6 +76,8 @@ public class RestauranteController {
 
 		ResponseEntity<?> responseEntity = null;
 		Iterable<Restaurante> lista_restaurantes = null;
+		
+		logger.debug("ATENDIDO POR EL PUERTO " + environment.getProperty("local.server.port"));
 
 		lista_restaurantes = this.restauranteService.consultarTodos();
 		responseEntity = ResponseEntity.ok(lista_restaurantes); //Mensaje de respuesta
@@ -135,6 +141,17 @@ public class RestauranteController {
 			responseEntity = ResponseEntity.ok(resFilt);
 			return responseEntity;
 		}
+		// Consultar todos lo barrios. Metodo GET a http://localhost:8081/restaurante/barrios
+	    @GetMapping("/barrios")
+	    public ResponseEntity<?> obtenerListadoBarrios() {
+	        ResponseEntity<?> responseEntity = null;
+	        Iterable<String> lista_barrios = null;
+
+		        lista_barrios = this.restauranteService.obtenerTodosLosBarrios();
+		        responseEntity = ResponseEntity.ok(lista_barrios);
+
+	        return responseEntity;
+	    }
 	
 	
 	
