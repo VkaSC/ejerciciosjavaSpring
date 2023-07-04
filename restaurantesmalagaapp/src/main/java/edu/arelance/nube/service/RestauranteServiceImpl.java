@@ -6,7 +6,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
+import edu.arelance.nube.dto.FraseChuckNorris;
 import edu.arelance.nube.repository.RestauranteRepository;
 import edu.arelance.nube.repository.entity.Restaurante;
 
@@ -83,6 +85,19 @@ public class RestauranteServiceImpl implements RestauranteService {
 			return this.restauranteRepository.consultarTodosLosBarrios();
 
 	 }
+
+	@Override
+	public Optional<FraseChuckNorris> obtenerFraseAleatorioChuckNorris() {
+		Optional<FraseChuckNorris> opChuck = Optional.empty();
+		FraseChuckNorris fraseChuckNorris = null;
+		RestTemplate restTemplate = null;
+		
+			//consumir servicio rest
+		restTemplate = new RestTemplate();
+		fraseChuckNorris = restTemplate.getForObject("https://api.chucknorris.io/jokes/random", FraseChuckNorris.class);
+		opChuck = Optional.of(fraseChuckNorris);
+		return opChuck;
+	}
 
 
 	
