@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -72,6 +74,15 @@ public class RestauranteServiceImpl implements RestauranteService {
 		 listaRest = this.restauranteRepository.findByPrecioBetween(preciomin, preciomax );
 		 return listaRest;
 	}
+	
+	//GET paginado
+	@Override
+	@Transactional(readOnly = true)
+	public Iterable<Restaurante> consultaPorRangoPrecio(int preciomin, int preciomax, Pageable pageable){
+		 Iterable<Restaurante> listaRest = null;
+		 listaRest = this.restauranteRepository.findByPrecioBetween(preciomin, preciomax,pageable );
+		 return listaRest;
+	}
 
 	@Override
 	public Iterable<Restaurante> buscarPorBarrioNombreOEspecialidad(String clave) {
@@ -97,6 +108,12 @@ public class RestauranteServiceImpl implements RestauranteService {
 		fraseChuckNorris = restTemplate.getForObject("https://api.chucknorris.io/jokes/random", FraseChuckNorris.class);
 		opChuck = Optional.of(fraseChuckNorris);
 		return opChuck;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Restaurante> consultarPorPagina(Pageable pageable) {
+		return this.restauranteRepository.findAll(pageable);
 	}
 
 

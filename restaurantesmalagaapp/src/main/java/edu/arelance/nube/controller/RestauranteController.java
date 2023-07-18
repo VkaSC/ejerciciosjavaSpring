@@ -1,16 +1,23 @@
 package edu.arelance.nube.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.hibernate.loader.plan.exec.process.internal.AbstractRowReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -23,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import edu.arelance.nube.dto.FraseChuckNorris;
 import edu.arelance.nube.repository.entity.Restaurante;
@@ -135,6 +143,18 @@ public class RestauranteController {
 		return responseEntity;
 
 	}
+	// GET -> Restaurantes en rango de precios y paginado
+		//http://localhost:8081/restaurante/buscarPorPrecioPaginado?preciomin=1&preciomax=10&pagina=0&size=3
+		@GetMapping("/buscarPorPrecioPaginado")
+		public ResponseEntity<?> listarPorRangoDePrecioPaginado(@RequestParam(name = "preciomin") int preciomin,
+				@RequestParam(name = "preciomax") int preciomax, Pageable pageable) {
+			ResponseEntity<?> responseEntity = null;
+			Iterable<Restaurante> restEnRango = null;
+			restEnRango = this.restauranteService.consultaPorRangoPrecio(preciomin, preciomax, pageable);
+			responseEntity = ResponseEntity.ok(restEnRango);
+			return responseEntity;
+
+		}
 
 	// Get -> busqueda multiple en función del parametro de busqueda (barrio, nombre
 	// o especialidad
@@ -186,6 +206,48 @@ public class RestauranteController {
 
 		return responseEntity;
 	}
+	
+	// * GET -> consultar restaurante con foto http://localhost:8081/restaurante/obtenerFoto/5
+		@Operation(description = "Este servicio permite la consulta de restaurante por id")
+		@GetMapping("/obtenerFoto/{id}")
+		public ResponseEntity<?> obtenerFotoRestaurante(@PathVariable Long id) {
+
+			ResponseEntity<?> responseEntity = null;
+			Optional<Restaurante> or = null;
+			Resource imagen = null; //Representa el archivo (imagen)
+			logger.debug("Entrando en el método listarPorId: con id:" + id);
+			or = this.restauranteService.consultarUno(id);
+			if (or.isPresent() && or.get().getFoto()!=null) {
+				// La consulta ha encontrado registro
+				Restaurante restauranteLeido = or.get();
+				imagen =  new ByteArrayResource(restauranteLeido.getFoto()); 
+				responseEntity = ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(imagen);
+				logger.debug("Recuperando el registro:" + restauranteLeido);
+			} else {
+				// La consulta no ha encontrado registro
+				responseEntity = ResponseEntity.noContent().build();
+				logger.debug("El restaurante con id: " + id + " NO EXISTE");
+			}
+			;
+			logger.debug("Saliendo del método");
+			return responseEntity;
+		}
+		
+		
+		//GET -> http://localhost:8081/restaurante/pagina?page=0&size=2
+		@GetMapping("/pagina") 
+		public ResponseEntity<?> obtenerRestaurantesPorPagina(Pageable pageable) {
+
+			ResponseEntity<?> responseEntity = null;
+			Iterable<Restaurante> pagina_restaurantes = null;
+
+			logger.debug("ATENDIDO POR EL PUERTO " + environment.getProperty("local.server.port"));
+
+			pagina_restaurantes = this.restauranteService.consultarPorPagina(pageable);
+			responseEntity = ResponseEntity.ok(pagina_restaurantes); // Mensaje de respuesta
+
+			return responseEntity;
+		}
 
 	// * POST -> insertar http://localhost:8081/restaurante (Body Restaurante)
 	@PostMapping
@@ -201,6 +263,38 @@ public class RestauranteController {
 
 		} else {
 			logger.debug("SIN Errores en la entrada al POST");
+			restauranteNuevo = this.restauranteService.altaRestaurante(restaurante);
+			responseEntity = ResponseEntity.status(HttpStatus.CREATED).body(restauranteNuevo);
+		}
+		return responseEntity;
+	}
+	
+	//POST con foto -> http://localhost:8081/restaurante/crear-con-foto
+	@PostMapping("/crear-con-foto")
+	public ResponseEntity<?> insertarRestauranteConFoto(@Valid Restaurante restaurante,
+			BindingResult bindingResult, MultipartFile archivo) throws IOException {
+
+		ResponseEntity<?> responseEntity = null;
+		Restaurante restauranteNuevo = null;
+		// TODO Validar
+		if (bindingResult.hasErrors()) {
+			logger.debug("Errores en la entrada de POST");
+			responseEntity = generarRespuestaDeErroresValidacion(bindingResult);
+
+		} else {
+			logger.debug("SIN Errores en la entrada al POST");
+			
+			if (!archivo.isEmpty()) {
+				logger.debug("El restaurante trae foto");
+				try {
+					restaurante.setFoto(archivo.getBytes());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("Error al tratar la foto", e);
+					throw e;
+				}
+			}
 			restauranteNuevo = this.restauranteService.altaRestaurante(restaurante);
 			responseEntity = ResponseEntity.status(HttpStatus.CREATED).body(restauranteNuevo);
 		}
@@ -231,6 +325,44 @@ public class RestauranteController {
 		}
 		return responseEntity;
 	}
+	// * PUT -> Editar un restaurante con foto
+		// http://localhost:8081/restaurante/editar-con-foto/id (Body Restaurante)
+		@PutMapping("/editar-con-foto/{id}")
+		public ResponseEntity<?> modificarRestauranteConFoto(@Valid Restaurante restaurante,
+				BindingResult bindingResult, MultipartFile archivo ,@PathVariable Long id) throws IOException {
+
+			ResponseEntity<?> responseEntity = null;
+			Optional<Restaurante> opRest = null;
+			
+			if (bindingResult.hasErrors()) {
+				logger.debug("Error en la entrada al PUT");
+				responseEntity = generarRespuestaDeErroresValidacion(bindingResult);
+
+			} else {
+				logger.debug("SIN Error en la entrada al PUT");
+				
+				if (!archivo.isEmpty()) {
+					try {
+						restaurante.setFoto( archivo.getBytes());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						logger.error("Error al tratar la foto", e);
+						throw e;
+					}
+				}
+				
+				opRest = this.restauranteService.modificarRestaurante(id, restaurante);
+				if (opRest.isPresent()) {
+					Restaurante rm = opRest.get(); // rm -> restaurante modificado que nos llega del service
+					responseEntity = ResponseEntity.ok(rm);
+				} else {
+					responseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+				}
+			}
+			
+			return responseEntity;
+		}
 
 	// * Delete -> Borra un registro (por Id) http://localhost:8081/restaurante/3
 	@DeleteMapping("/{id}")
