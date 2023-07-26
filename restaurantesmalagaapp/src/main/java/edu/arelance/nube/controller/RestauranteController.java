@@ -52,7 +52,7 @@ import io.swagger.v3.oas.annotations.Operation;
  * pertenece a service
  */
 //@Controller   => Es un controlador menos específico devuelve una representación (mas antiguo)
-@CrossOrigin(origins = {"*"}, methods = {RequestMethod.GET, RequestMethod.POST,RequestMethod.PUT})
+@CrossOrigin(originPatterns = {"*"}, methods = {RequestMethod.GET, RequestMethod.POST,RequestMethod.PUT})
 @RestController // Return JSon
 @RequestMapping("/restaurante")
 public class RestauranteController {
