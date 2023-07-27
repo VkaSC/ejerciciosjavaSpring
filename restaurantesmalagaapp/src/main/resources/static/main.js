@@ -66,6 +66,9 @@ const routes = [{
 }, {
   path: 'busqueda',
   component: _components_busqueda_busqueda_component__WEBPACK_IMPORTED_MODULE_9__.BusquedaComponent
+}, {
+  path: "**",
+  redirectTo: "/"
 }];
 class AppRoutingModule {}
 AppRoutingModule.ɵfac = function AppRoutingModule_Factory(t) {
@@ -75,7 +78,9 @@ AppRoutingModule.ɵmod = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_10_
   type: AppRoutingModule
 });
 AppRoutingModule.ɵinj = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdefineInjector"]({
-  imports: [_angular_router__WEBPACK_IMPORTED_MODULE_11__.RouterModule.forRoot(routes), _angular_router__WEBPACK_IMPORTED_MODULE_11__.RouterModule]
+  imports: [_angular_router__WEBPACK_IMPORTED_MODULE_11__.RouterModule.forRoot(routes, {
+    useHash: false
+  }), _angular_router__WEBPACK_IMPORTED_MODULE_11__.RouterModule]
 });
 (function () {
   (typeof ngJitMode === "undefined" || ngJitMode) && _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵsetNgModuleScope"](AppRoutingModule, {
@@ -1863,11 +1868,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   RestaurantesnpagComponent: () => (/* binding */ RestaurantesnpagComponent)
 /* harmony export */ });
-/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ 1699);
 /* harmony import */ var _service_restaurante_service__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../../service/restaurante.service */ 3423);
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ 1699);
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/common */ 6575);
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/router */ 7947);
 /* harmony import */ var _angular_material_paginator__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/material/paginator */ 9687);
+
 
 
 
@@ -1879,7 +1885,8 @@ function RestaurantesnpagComponent_div_6_div_1_img_2_Template(rf, ctx) {
   }
   if (rf & 2) {
     const restaurante_r2 = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵnextContext"]().$implicit;
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpropertyInterpolate1"]("src", "http://localhost:8081/restaurante/obtenerFoto/", restaurante_r2.id, "", _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsanitizeUrl"]);
+    const ctx_r3 = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵnextContext"](2);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpropertyInterpolate2"]("src", "", ctx_r3.ruta_servicio_foto, "/", restaurante_r2.id, "", _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsanitizeUrl"]);
   }
 }
 function RestaurantesnpagComponent_div_6_div_1_img_3_Template(rf, ctx) {
@@ -1891,7 +1898,7 @@ function RestaurantesnpagComponent_div_6_div_1_Template(rf, ctx) {
   if (rf & 1) {
     const _r7 = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵgetCurrentView"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](0, "div", 7)(1, "div", 8);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](2, RestaurantesnpagComponent_div_6_div_1_img_2_Template, 1, 1, "img", 9);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](2, RestaurantesnpagComponent_div_6_div_1_img_2_Template, 1, 2, "img", 9);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](3, RestaurantesnpagComponent_div_6_div_1_img_3_Template, 1, 0, "img", 10);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](4, "div", 11)(5, "h5", 12);
@@ -1972,6 +1979,7 @@ class RestaurantesnpagComponent {
     this.totalPorPagina = 4; //Restaurantes que se muenstran
     this.opcionesTamanio = [2, 4, 6, 8];
     this.paginaActual = 0;
+    this.ruta_servicio_foto = _service_restaurante_service__WEBPACK_IMPORTED_MODULE_0__.RestauranteService.URL_ACTUAL + "/obtenerFoto";
   }
   ngOnInit() {
     this.getRestaurantesPorPaginas();
